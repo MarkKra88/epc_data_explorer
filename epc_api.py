@@ -43,11 +43,10 @@ class EPCAPIClient:
         # Make the API request
         try:
             with urlopen(Request(full_url, headers=self.headers)) as response:
-                # Decode the CSV response
                 csv_data = response.read().decode('utf-8')
-
-                # Convert the CSV data into a DataFrame
-                data = pd.read_csv(io.StringIO(csv_data))
-                return data
+                return pd.read_csv(io.StringIO(csv_data))
+        except pd.errors.EmptyDataError:
+            # Return an empty DataFrame if no data is returned
+            return pd.DataFrame()
         except Exception as e:
             raise RuntimeError(f"Error fetching data from EPC API: {e}")
