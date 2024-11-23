@@ -16,7 +16,7 @@ class EPCWebScraper:
         #         "(KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36"
         #     )
         # }
-        print("base urls ", self.base_url)
+        # print("base urls ", self.base_url)
 
     def fetch_html(self, postcode: str) -> str:
         """
@@ -28,8 +28,8 @@ class EPCWebScraper:
         url = f"{self.base_url}{postcode}"
         # response = requests.get(url, headers=self.headers)
         response = requests.get(url)
-        print("url: ", url)
-        print("response: ",response.status_code)
+        # print("url: ", url)
+        # print("response: ",response.status_code)
         if response.status_code != 200:
             raise RuntimeError(f"Failed to fetch data for postcode '{postcode}'. Status code: {response.status_code}")
         return response.text
@@ -49,7 +49,7 @@ class EPCWebScraper:
         body = table.find('tbody')
         row = body.find_all("tr")
         for entry in row:
-            print("-----start-----")
+            # print("-----start-----")
             address = entry.find("a", class_="govuk-link").text.strip()
             energy_rating = entry.find("td", class_="govuk-table__cell").text.strip()
             valid_until = entry.find("td", class_="govuk-table__cell date").text.strip()
@@ -62,11 +62,11 @@ class EPCWebScraper:
                 expired = ""
 
             # expired = entry.find_all(string="Expired")
-            print("address: " + address)
-            print("energy_rating: " + energy_rating)
-            print("valid_until: " + repr(valid_until))
-
-            print("expired: " + expired)
+            # print("address: " + address)
+            # print("energy_rating: " + energy_rating)
+            # print("valid_until: " + repr(valid_until))
+            #
+            # print("expired: " + expired)
 
 
         # for entry in soup.find_all("div", class_="certificate-result"):
@@ -74,12 +74,13 @@ class EPCWebScraper:
         #     energy_rating = entry.find("td", class_="govuk-table__cell").text.strip()
         #     valid_until = entry.find("td", class_="govuk-table__cell date").text.strip()
         #
-        #     results.append({
-        #         "Address": address,
-        #         "Energy Rating": energy_rating,
-        #         "Valid Until": valid_until
-        #     })
-        
+            results.append({
+                "Address": address,
+                "Energy Rating": energy_rating,
+                "Valid Until": valid_until,
+                "Expired": expired
+            })
+        # print(results)
         # Return as a DataFrame
         return pd.DataFrame(results)
     
