@@ -1,60 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EPC Data Explorer</title>
-    <style>
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin-top: 20px;
-        }
-        table, th, td {
-            border: 1px solid black;
-        }
-        th, td {
-            padding: 10px;
-            text-align: left;
-        }
-        .error {
-            color: red;
-        }
-    </style>
+    <title>Search Postcode</title>
 </head>
 <body>
     <h1>EPC Data Explorer</h1>
-
     <form method="POST">
         <label for="postcode">Enter Postcode:</label>
         <input type="text" id="postcode" name="postcode" required>
         <button type="submit">Search</button>
     </form>
-
     {% if error %}
     <p class="error">{{ error }}</p>
-    {% elif result is not none and not result.empty %}
-    <h2>Results</h2>
-    <table>
-        <thead>
-            <tr>
-                {% for column in result.columns %}
-                <th>{{ column }}</th>
-                {% endfor %}
-            </tr>
-        </thead>
-        <tbody>
-            {% for row in result.values %}
-            <tr>
-                {% for cell in row %}
-                <td>{{ cell }}</td>
-                {% endfor %}
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
-    {% else %}
-    <p>No data available.</p>
     {% endif %}
 </body>
 </html>

@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Address Details</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+    </style>
+</head>
+<body>
+    <h1>Details for Selected Address</h1>
+    <table>
+        <tbody>
+            {% for key, value in details.items() %}
+            <tr>
+                <th>{{ key }}</th>
+                <td>{{ value }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- Back to Search -->
+    <form method="GET" action="/api_results">
+        <input type="hidden" name="postcode" value="{{ request.form.get('postcode') }}">
+        <button type="submit">Back to Search</button>
+    </form>
+
+    <!-- New Search Button -->
+    <form method="GET" action="/">
+        <button type="submit">New Search</button>
+    </form>
+</body>
+</html>

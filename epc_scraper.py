@@ -77,7 +77,7 @@ class EPCWebScraper:
 # Example usage
 if __name__ == "__main__":
     scraper = EPCWebScraper()
-    postcode = "HA0 3PS"  # Example postcode
+    postcode = "W1H 5HE"  # Example postcode
     try:
         addresses_df = scraper.fetch_addresses(postcode)
         if addresses_df.empty:

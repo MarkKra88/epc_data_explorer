@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>API Results</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+    <script>
+        let lastChecked = null; // Track the last checked radio button
+
+        function toggleButtons(selectedRow) {
+            const showDetailsButton = document.getElementById('details-button');
+            const scraperButton = document.getElementById('scraper-button');
+
+            if (selectedRow) {
+                // Show "Show all details" button and hide "I don't see my address" button
+                showDetailsButton.style.display = 'block';
+                scraperButton.style.display = 'none';
+            } else {
+                // Hide "Show all details" button and show "I don't see my address" button
+                showDetailsButton.style.display = 'none';
+                scraperButton.style.display = 'block';
+            }
+        }
+
+        function handleRadioClick(radio) {
+            // Deselect the radio button if it's clicked again
+            if (lastChecked === radio) {
+                radio.checked = false;
+                lastChecked = null;
+                toggleButtons(false); // No row selected
+            } else {
+                lastChecked = radio;
+                toggleButtons(true); // A row is selected
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>API Results for Postcode: {{ postcode }}</h1>
+    {% if error %}
+    <p class="error">{{ error }}</p>
+    {% else %}
+    <form method="POST" action="/details">
+        <input type="hidden" name="postcode" value="{{ postcode }}">
+        <table>
+            <thead>
+                <tr>
+                    <th>Select</th>
+                    {% for column in api_result.columns %}
+                    <th>{{ column }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for index, row in api_result.iterrows() %}
+                <tr>
+                    <td>
+                        <input
+                            type="radio"
+                            name="selected_row"
+                            value="{{ row.Order }}"
+                            onclick="handleRadioClick(this)">
+                    </td>
+                    {% for cell in row %}
+                    <td>{{ cell }}</td>
+                    {% endfor %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <button type="submit" id="details-button" style="display: none;">Show All Details</button>
+    </form>
+
+    <form method="POST" action="/scraper_results">
+        <input type="hidden" name="postcode" value="{{ postcode }}">
+        <button type="submit" id="scraper-button">I don't see my address</button>
+    </form>
+    {% endif %}
+
+    <!-- New Search Button -->
+    <form method="GET" action="/">
+        <button type="submit">New Search</button>
+    </form>
+</body>
+</html>
