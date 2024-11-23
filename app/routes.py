@@ -1,6 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for
-from epc_api import EPCAPIClient
-from epc_scraper import EPCWebScraper
+from app.epc_api import EPCAPIClient
+from app.epc_scraper import EPCWebScraper
 import os
 from dotenv import load_dotenv
 
