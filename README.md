@@ -94,7 +94,10 @@
 3. Install dependencies:
     ```bash
     pip install -r requirements.txt
-4. Set up .env: Create a .env file in the root directory and add your API token and database URI:
+4. Set up .env using .env_template:
+* Locate the .env_template file in the root directory.
+* Rename it to .env
+* Open the .env file and replace placeholders with your actual values:
     ```bash
     authentication_token=<your_epc_api_key>
     DATABASE_URI=sqlite:///epc_data.db
