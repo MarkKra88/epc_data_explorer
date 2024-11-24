@@ -31,9 +31,8 @@
     </table>
 
     <!-- Back to Search -->
-    <form method="GET" action="/api_results">
-        <input type="hidden" name="postcode" value="{{ request.form.get('postcode') }}">
-        <button type="submit">Back to Search</button>
+    <form method="GET" action="{{ url_for('main.api_results', postcode=postcode) }}">
+        <button type="submit">Back to Results</button>
     </form>
 
     <!-- New Search Button -->

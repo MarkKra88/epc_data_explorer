@@ -61,24 +61,34 @@
             <thead>
                 <tr>
                     <th>Select</th>
-                    {% for column in api_result.columns %}
-                    <th>{{ column }}</th>
-                    {% endfor %}
+                    <th>#</th>
+                    <th>LMK Key</th>
+                    <th>Address1</th>
+                    <th>Address2</th>
+                    <th>Address3</th>
+                    <th>Postcode</th>
+                    <th>Inspection Date</th>
+                    <th>UPRN</th>
                 </tr>
             </thead>
             <tbody>
-                {% for index, row in api_result.iterrows() %}
+                {% for index, row in enumerate(api_result) %}
                 <tr>
                     <td>
                         <input
                             type="radio"
                             name="selected_row"
-                            value="{{ row.Order }}"
+                            value="{{ index + 1 }}"
                             onclick="handleRadioClick(this)">
                     </td>
-                    {% for cell in row %}
-                    <td>{{ cell }}</td>
-                    {% endfor %}
+                    <td>{{ index + 1 }}</td>
+                    <td>{{ row['lmk_key'] }}</td>
+                    <td>{{ row['address1'] }}</td>
+                    <td>{{ row['address2'] }}</td>
+                    <td>{{ row['address3'] }}</td>
+                    <td>{{ row['postcode'] }}</td>
+                    <td>{{ row['inspection_date'] }}</td>
+                    <td>{{ row['uprn'] }}</td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -86,7 +96,7 @@
         <button type="submit" id="details-button" style="display: none;">Show All Details</button>
     </form>
 
-    <form method="POST" action="/scraper_results">
+    <form method="POST" action="/scraper-results/{{ postcode }}">
         <input type="hidden" name="postcode" value="{{ postcode }}">
         <button type="submit" id="scraper-button">I don't see my address</button>
     </form>

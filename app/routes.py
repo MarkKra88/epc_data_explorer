@@ -1,8 +1,10 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request
+from flask import redirect, url_for
 from app.epc_api import EPCAPIClient
 from app.epc_scraper import EPCWebScraper
 import os
 from dotenv import load_dotenv
+from app.db_utils import save_api_results, get_api_results, reset_database
 
 # Blueprint for the main routes
 main = Blueprint('main', __name__)
@@ -15,75 +17,78 @@ authentication_token = os.getenv('authentication_token')
 client = EPCAPIClient(authentication_token=authentication_token)
 scraper = EPCWebScraper()
 
+
 @main.route('/', methods=['GET', 'POST'])
 def index():
-    """
-    Home page: Input postcode and decide workflow.
-    """
-    error = None
-
     if request.method == 'POST':
-        postcode = request.form.get('postcode')
-        if postcode:
-            # Redirect to the API results page
-            return redirect(url_for('main.api_results', postcode=postcode))
-        else:
-            error = "Please enter a valid postcode."
+        # Fetch postcode from the form
+        postcode = request.form.get('postcode', '').strip()
 
-    return render_template('index.html', error=error)
+        # Validate postcode input
+        if not postcode:
+            return render_template('index.html', error="Please enter a valid postcode.")
 
+        # Reset database for new search
+        print("Resetting database...")
+        reset_database()
+        print("Database reset complete.")
 
-@main.route('/api_results', methods=['GET', 'POST'])
-def api_results():
-    """
-    Show API results and allow selection of an address.
-    """
-    postcode = request.args.get('postcode')
-    api_result = None
-    error = None
-
-    if postcode:
+        # Fetch and save new results
+        client = EPCAPIClient(authentication_token=os.getenv('authentication_token'))
         try:
-            api_data = client.fetch_addresses(postcode)
-            if not api_data.empty:
-                api_result = api_data[
-                    ['lmk-key', 'address1', 'address2', 'address3', 'postcode', 'inspection-date', 'uprn']
-                ].reset_index(drop=True)
-                api_result.index += 1
-                api_result.insert(0, 'Order', api_result.index)
-            else:
-                error = f"No API results found for postcode '{postcode}'."
+            data = client.fetch_addresses(postcode)
+            print(f"Fetched data for postcode '{postcode}': {data}")
+
+            # Save results to the database
+            save_api_results(data.to_dict(orient='records'))
         except Exception as e:
-            error = str(e)
+            print(f"Error during API fetch or save: {e}")
+            return render_template('index.html', error="Error fetching data from the API.")
 
-    return render_template('api_results.html', api_result=api_result, error=error, postcode=postcode)
+        # Retrieve saved results for the given postcode
+        results = get_api_results(postcode)
+        print(f"Results for postcode '{postcode}': {results}")
+
+        # Render API results page
+        return render_template('api_results.html', api_result=results, postcode=postcode, enumerate=enumerate)
+
+    # Render the main search page
+    return render_template('index.html')
 
 
-@main.route('/scraper_results', methods=['POST'])
-def scraper_results():
+@main.route('/api-results/<postcode>', methods=['GET'])
+def api_results(postcode):
     """
-    Show scraper results for the given postcode.
+    Display API results for a given postcode.
     """
-    postcode = request.form.get('postcode')
-    scraper_result = None
-    error = None
+    print(f"Fetching results for postcode: {postcode}")
 
-    if postcode:
-        try:
-            scraper_result = scraper.fetch_addresses(postcode)
-            if scraper_result.empty:
-                error = f"No scraper results found for postcode '{postcode}'."
-        except Exception as e:
-            error = str(e)
+    # Query the database for results
+    results = get_api_results(postcode)
 
-    return render_template('scraper_results.html', scraper_result=scraper_result, error=error, postcode=postcode)
+    # Debugging: Check the fetched results
+    print(f"Results fetched: {results}")
+
+    # Check if results are empty
+    if not results:
+        return render_template('api_results.html', error="No results found for this postcode.", postcode=postcode)
+
+    # Render the results page
+    return render_template('api_results.html', api_result=results, postcode=postcode, enumerate=enumerate)
+
+@main.route('/scraper-results/<postcode>', methods=['POST'])
+def scraper_results(postcode):
+    results = scraper.fetch_addresses(postcode)  # Fetch results using the scraper
+    if not results.empty:
+        scraper_result = results.to_dict(orient="records")
+    else:
+        scraper_result = []
+
+    return render_template('scraper_results.html', scraper_result=scraper_result, postcode=postcode, enumerate=enumerate)
 
 
 @main.route('/details', methods=['POST'])
 def details():
-    """
-    Show detailed data for the selected address.
-    """
     selected_row = request.form.get('selected_row')
     postcode = request.form.get('postcode')
     details = None
@@ -93,4 +98,25 @@ def details():
         if not api_data.empty:
             details = api_data.iloc[int(selected_row) - 1].to_dict()
 
-    return render_template('details.html', details=details)
+    return render_template('details.html', details=details, postcode=postcode)
+
+if __name__ == "__main__":
+    from app import create_app
+
+    # Create the Flask app instance
+    app = create_app()
+
+    # Use the application context
+    with app.app_context():
+        # Instantiate the EPC API client
+        client = EPCAPIClient(authentication_token=os.getenv('authentication_token'))
+
+        # Fetch data
+        data = client.fetch_addresses("SW10 0XE")
+
+        # Save results to the database
+        save_api_results(data.to_dict(orient='records'))
+
+        # Query results
+        results = get_api_results("SW10 0XE")
+        print("API Results:", results)
